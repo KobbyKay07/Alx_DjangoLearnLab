@@ -6,4 +6,4 @@ from django.views.generic.detail import DetailView
 def booklist(request):
     books = Book.objects.all()
     context = {'book_list': books}
-    return render(request, "relationship_app/booklist.html", context)
+    return render(request, 'relationship_app/list_books.html', context)
