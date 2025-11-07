@@ -1,8 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from .models import Book
 from .models import Library
 from django.views.generic.detail import DetailView
-from django.views.generic.edit import CreateView
 from django.urls import reverse_lazy
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, logout
@@ -17,15 +16,28 @@ class LibraryDetailView(DetailView):
     model = Library
     template_name = 'relationship_app/library_detail.html'
 
-class SignUpView(CreateView):
-    form_class = UserCreationForm()
-    success_url = reverse_lazy('login')
-    template_name = 'relationship_app/register.html'
+def register(request):
+    form = UserCreationForm()
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('list_books')
+    return render(request, 'relationship_app/register.html', {'form': form})
 
-class CustomLoginView(login):
-    template_name = 'relationship_app/login.html'
-    authentication_form = AuthenticationForm
-    redirect_authenticated_user = True
 
-class CustomLogoutView(logout):
-    next_page = reverse_lazy('login')
+def user_login(request):
+    form = AuthenticationForm()
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            return redirect('list_books')
+    return render(request, 'relationship_app/login.html', {'form': form})
+
+
+def user_logout(request):
+    logout(request)
+    return redirect(reverse_lazy('login'))
