@@ -11,7 +11,7 @@ def book_shelf(request):
 # Permission: can_view
 # Only users with can_view can access this page.
 @permission_required('bookshelf.can_view', raise_exception=True)
-def list_books(request):
+def book_list(request):
     """
     Display a list of all books.
 
