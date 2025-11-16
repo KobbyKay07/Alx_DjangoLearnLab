@@ -1,13 +1,35 @@
 from django import forms
-from .models import Book
 
-class BookForm(forms.ModelForm):
-    class Meta:
-        model = Book
-        fields = ['title', 'author', 'publication_year']
+class ExampleForm(forms.Form):
+    """
+    A simple example form demonstrating:
+    - Secure user input handling
+    - Built-in Django validation
+    - Protection against invalid input
+    """
 
-    def clean_publication_year(self):
-        year = self.cleaned_data.get('publication_year')
-        if year and (year < 0 or year > 2100):
-            raise forms.ValidationError("Enter a valid year.")
-        return year
+    title = forms.CharField(
+        max_length=200,
+        required=True,
+        widget=forms.TextInput(attrs={"placeholder": "Enter title"})
+    )
+
+    author = forms.CharField(
+        max_length=100,
+        required=True,
+        widget=forms.TextInput(attrs={"placeholder": "Enter author"})
+    )
+
+    publication_year = forms.IntegerField(
+        required=True,
+        min_value=0,
+        max_value=2100,
+        help_text="Enter a valid year between 0 and 2100"
+    )
+
+    # Extra security example: custom validation
+    def clean_title(self):
+        title = self.cleaned_data.get("title", "")
+        if "<script>" in title.lower():
+            raise forms.ValidationError("Invalid characters detected.")
+        return title
