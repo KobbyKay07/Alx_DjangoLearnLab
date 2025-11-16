@@ -4,10 +4,35 @@ from django.views.decorators.csrf import csrf_protect
 from django.core.exceptions import ValidationError
 from django.utils.html import escape  # SECURITY: prevents XSS by escaping unsafe HTML
 from .models import Book
-
+from .forms import ExampleForm
 
 def book_shelf(request):
     return HttpResponse("Hello, welcome to the Bookshelf app!")
+
+@csrf_protect
+def example_form_view(request):
+    """
+    Secure example form:
+    - CSRF-protected
+    - Uses Django forms for validation (prevents SQL injection & bad input)
+    - Automatically escapes output in templates (prevents XSS)
+    """
+    form = ExampleForm(request.POST or None)
+
+    if request.method == "POST":
+        if form.is_valid():
+            # Clean and validated data
+            title = form.cleaned_data["title"]
+            author = form.cleaned_data["author"]
+            year = form.cleaned_data["publication_year"]
+
+            # No database write needed — it's only an example
+            return render(request, "bookshelf/form_example.html", {
+                "form": ExampleForm(),  # show empty form again
+                "success": f"Form submitted: {title} by {author} ({year})",
+            })
+
+    return render(request, "bookshelf/form_example.html", {"form": form})
 
 
 @permission_required('bookshelf.can_view', raise_exception=True)

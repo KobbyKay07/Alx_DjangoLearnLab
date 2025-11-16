@@ -1,11 +1,21 @@
 <!-- bookshelf/templates/bookshelf/form_example.html -->
-<form method="post" action="{% url 'create_book' %}">
+
+<h2>Secure Example Form</h2>
+
+{% if success %}
+    <p style="color: green;">{{ success }}</p>
+{% endif %}
+
+<form method="post">
     {% csrf_token %}
-    <label>Title</label>
-    <input name="title" value="{{ request.POST.title|default:'' }}" required>
-    <label>Author</label>
-    <input name="author" value="{{ request.POST.author|default:'' }}" required>
-    <label>Year</label>
-    <input name="publication_year" type="number" value="{{ request.POST.publication_year|default:'' }}" required>
-    <button type="submit">Create</button>
+    {{ form.as_p }}  <!-- Secure Django rendering (auto-escaped) -->
+
+    <button type="submit">Submit</button>
 </form>
+
+{% if form.errors %}
+    <div style="color: red;">
+        <strong>Please fix the following errors:</strong>
+        {{ form.errors }}
+    </div>
+{% endif %}
