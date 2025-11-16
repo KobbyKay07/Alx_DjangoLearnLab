@@ -1,83 +1,98 @@
-from django.shortcuts import HttpResponse
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import HttpResponse, render, get_object_or_404, redirect
 from django.contrib.auth.decorators import permission_required
+from django.views.decorators.csrf import csrf_protect
+from django.core.exceptions import ValidationError
+from django.utils.html import escape  # SECURITY: prevents XSS by escaping unsafe HTML
 from .models import Book
 
-# Create your views here.
+
 def book_shelf(request):
     return HttpResponse("Hello, welcome to the Bookshelf app!")
 
-# View: List all books
-# Permission: can_view
-# Only users with can_view can access this page.
+
 @permission_required('bookshelf.can_view', raise_exception=True)
 def book_list(request):
     """
-    Display a list of all books.
-
-    Permissions:
-    - Users must have 'can_view' permission (Viewers, Editors, Admins).
+    Securely display a list of books.
+    - Uses Django ORM (prevents SQL injection).
+    - Output auto-escaped in templates (prevents XSS).
     """
     books = Book.objects.all()
-    return render(request, 'bookshelf/list_books.html', {'books': books})
+    return render(request, "bookshelf/book_list.html", {"books": books})
 
 
-# View: Create a new book
-# Permission: can_create
-# Only users with can_create can access this page.
-@permission_required('bookshelf.can_create', raise_exception=True)
+@csrf_protect  # SECURITY: Protects against CSRF attacks
+@permission_required("bookshelf.can_create", raise_exception=True)
 def create_book(request):
     """
-    Create a new book entry.
-
-    Permissions:
-    - Users must have 'can_create' permission (Editors, Admins).
+    Securely create a new book entry.
+    - CSRF protection
+    - Input validation
+    - No raw SQL (prevents SQL injection)
     """
-    if request.method == 'POST':
-        title = request.POST.get('title')
-        author = request.POST.get('author')
-        publication_year = request.POST.get('publication_year')
-        Book.objects.create(title=title, author=author, publication_year=publication_year)
-        return redirect('list_books')
+    if request.method == "POST":
+        title = escape(request.POST.get("title", "").strip())
+        author = escape(request.POST.get("author", "").strip())
+        publication_year = request.POST.get("publication_year", "").strip()
 
-    return render(request, 'bookshelf/create_book.html')
+        # Validate numeric year input
+        if not publication_year.isdigit():
+            return render(request, "bookshelf/create_book.html", {
+                "error": "Publication year must be a number."
+            })
+
+        Book.objects.create(
+            title=title,
+            author=author,
+            publication_year=int(publication_year)
+        )
+        return redirect("book_list")
+
+    return render(request, "bookshelf/create_book.html")
 
 
-# View: Edit an existing book
-# Permission: can_edit
-# Only users with can_edit can access this page.
-@permission_required('bookshelf.can_edit', raise_exception=True)
+@csrf_protect
+@permission_required("bookshelf.can_edit", raise_exception=True)
 def edit_book(request, book_id):
     """
-    Edit an existing book.
-
-    Permissions:
-    - Users must have 'can_edit' permission (Editors, Admins).
+    Securely edit a book.
+    - Input validation
+    - CSRF protection
+    - ORM prevents SQL injection
     """
     book = get_object_or_404(Book, id=book_id)
 
-    if request.method == 'POST':
-        book.title = request.POST.get('title')
-        book.author = request.POST.get('author')
-        book.publication_year = request.POST.get('publication_year')
+    if request.method == "POST":
+        book.title = escape(request.POST.get("title", "").strip())
+        book.author = escape(request.POST.get("author", "").strip())
+        pub_year = request.POST.get("publication_year", "").strip()
+
+        if not pub_year.isdigit():
+            return render(request, "bookshelf/edit_book.html", {
+                "book": book,
+                "error": "Publication year must be numeric."
+            })
+
+        book.publication_year = int(pub_year)
         book.save()
-        return redirect('list_books')
 
-    return render(request, 'bookshelf/edit_book.html', {'book': book})
+        return redirect("book_list")
+
+    return render(request, "bookshelf/edit_book.html", {"book": book})
 
 
-# View: Delete a book
-# Permission: can_delete
-# Only users with can_delete can access this page.
-@permission_required('bookshelf.can_delete', raise_exception=True)
+@csrf_protect
+@permission_required("bookshelf.can_delete", raise_exception=True)
 def delete_book(request, book_id):
     """
-    Delete a book entry.
-
-    Permissions:
-    - Users must have 'can_delete' permission (Admins).
+    Securely delete a book.
+    - CSRF protected (delete buttons use POST)
+    - ORM ensures safe deletion
     """
     book = get_object_or_404(Book, id=book_id)
-    book.delete()
-    return redirect('list_books')
 
+    if request.method == "POST":
+        book.delete()
+        return redirect("book_list")
+
+    return render(request, "bookshelf/delete_confirm.html", {"book": book})

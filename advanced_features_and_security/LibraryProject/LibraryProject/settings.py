@@ -23,9 +23,51 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-mz8xdbfhn^m=qvmle70zlf1@=ibvuzwf-%t(x)!t)5!_9+l$c#'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+
+# SECURITY: Prevent content sniffing (reduces XSS risk)
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# SECURITY: XSS protection for older browsers
+SECURE_BROWSER_XSS_FILTER = True
+
+# SECURITY: Prevent your site from being displayed in iframes (protects against clickjacking)
+X_FRAME_OPTIONS = "DENY"
+
+# SECURITY: Ensure cookies can only be sent over HTTPS.
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
+# SECURITY: Prevent JavaScript from accessing cookies (protects against XSS)
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_HTTPONLY = True
+
+# SECURITY: Only allow scripts from your own server
+CSP_DEFAULT_SRC = ("'self'",)
+
+# SECURITY: Restrict JavaScript sources
+CSP_SCRIPT_SRC = ("'self'",)
+
+# SECURITY: Restrict styles (self + inline for Django admin)
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
+
+# SECURITY: Restrict images
+CSP_IMG_SRC = ("'self'", "data:")
+
+# SECURITY: Restrict fonts
+CSP_FONT_SRC = ("'self'",)
+
+# SECURITY: No external iframes
+CSP_FRAME_ANCESTORS = ("'none'",)
+
+# SECURITY: Redirect all HTTP traffic to HTTPS
+SECURE_SSL_REDIRECT = True
+
+CSRF_FAILURE_VIEW = "django.views.csrf.csrf_failure"
+
+
 
 
 # Application definition
@@ -38,7 +80,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bookshelf',
-    'relationship_app.apps.RelationshipAppConfig'
+    'relationship_app.apps.RelationshipAppConfig',
+    'csp',   # SECURITY: Content Security Policy management
 ]
 
 MIDDLEWARE = [
@@ -49,6 +92,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "csp.middleware.CSPMiddleware",   # SECURITY: Adds CSP headers
 ]
 
 ROOT_URLCONF = 'LibraryProject.urls'

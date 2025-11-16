@@ -1,0 +1,21 @@
+<!-- SECURITY: Django auto-escapes variables to prevent XSS -->
+<h1>Book List</h1>
+
+<a href="{% url 'create_book' %}">Create New Book</a>
+
+<ul>
+    {% for book in books %}
+        <li>
+            {{ book.title }} — {{ book.author }} ({{ book.publication_year }})
+
+            <!-- Edit -->
+            <a href="{% url 'edit_book' book.id %}">Edit</a>
+
+            <!-- Delete via POST (more secure than GET) -->
+            <form method="POST" action="{% url 'delete_book' book.id %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit">Delete</button>
+            </form>
+        </li>
+    {% endfor %}
+</ul>
