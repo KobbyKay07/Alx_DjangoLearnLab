@@ -30,6 +30,9 @@ class AuthorSerializer(serializers.ModelSerializer):
      creating authors
      listing authors
     """
+
+    books = BookSerializer(many=True, read_only=True)
+    
     class Meta:
         model = Author
         fields = ['id', 'name']
