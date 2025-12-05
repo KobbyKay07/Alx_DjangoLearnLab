@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}{{ form_title }}{% endblock %}
+
+{% block content %}
+<h1>{{ form_title }}</h1>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <button type="submit" class="btn">Save</button>
+    <a href="{% url 'posts' %}" class="btn">Cancel</a>
+</form>
+
+{% endblock %}

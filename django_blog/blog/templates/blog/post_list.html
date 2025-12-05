@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}All Posts{% endblock %}
+
+{% block content %}
+<h1>All Blog Posts</h1>
+
+<a class="btn" href="{% url 'post_create' %}">Create New Post</a>
+
+<div class="post-list">
+    {% for post in posts %}
+        <div class="post-item">
+            <h2><a href="{% url 'post_detail' post.id %}">{{ post.title }}</a></h2>
+            <p>{{ post.content|truncatewords:20 }}</p>
+            <small>By {{ post.author.username }} | {{ post.created_at|date:"M d, Y" }}</small>
+
+            {% if user == post.author %}
+                <div class="actions">
+                    <a href="{% url 'post_edit' post.id %}" class="btn-small">Edit</a>
+                    <a href="{% url 'post_delete' post.id %}" class="btn-small">Delete</a>
+                </div>
+            {% endif %}
+        </div>
+    {% empty %}
+        <p>No posts available.</p>
+    {% endfor %}
+</div>
+{% endblock %}
