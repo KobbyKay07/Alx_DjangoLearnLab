@@ -1,14 +1,15 @@
 from django.contrib.auth.forms import UserCreationForm
 from django.urls import reverse_lazy
-from django.views.generic import CreateView
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .forms import UserProfileForm
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-from permissions import IsAuthor
+from .permissions import IsAuthor
 from .models import Post
 from .serializers import PostSerializer
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 
 
 # Create your views here.
@@ -39,21 +40,21 @@ def profile(request):
     }
     return render(request, 'profile.html', context)
 
-class ListView(generics.ListAPIView):
+class List_View(generics.ListAPIView):
     '''
     Displays a list of all Posts.
     '''
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
-class DetailView(generics.RetrieveAPIView):
+class Detail_View(generics.RetrieveAPIView):
     '''
     Displays details of a specific Post.
     '''
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
-class CreateView(generics.CreateAPIView):
+class Create_View(generics.CreateAPIView):
     '''
     Allows creation of a new Post.
     '''
@@ -61,7 +62,7 @@ class CreateView(generics.CreateAPIView):
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated] # Only authenticated users can create posts
 
-class UpdateView(generics.UpdateAPIView):
+class Update_View(generics.UpdateAPIView):
     '''
     Allows updating an existing Post.
     '''
@@ -69,15 +70,10 @@ class UpdateView(generics.UpdateAPIView):
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated, IsAuthor] # Only authors users can update posts
 
-class DeleteView(generics.DestroyAPIView):
+class Delete_View(generics.DestroyAPIView):
     '''
     Allows deletion of a Post.
     '''
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated, IsAuthor] # Only authors users can delete posts
-
-def get_context_data(self, **kwargs):
-    context = super().get_context_data(**kwargs)
-    context['form_title'] = "Create Post"   # or "Edit Post"
-    return context
