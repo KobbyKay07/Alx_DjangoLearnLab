@@ -8,8 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from .permissions import IsAuthor
 from .models import Post
 from .serializers import PostSerializer
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import CreateView
 
 
 # Create your views here.
