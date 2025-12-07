@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}{{ form_title|default:"Create/Edit Post" }}{% endblock %}
+
+{% block content %}
+<h1>{{ form_title|default:"Create/Edit Post" }}</h1>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <button type="submit" class="btn">Save</button>
+    <a href="{% url 'posts' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from .models import Post, Comment
+from taggit.forms import TagWidget
 
 class UserProfileForm(forms.ModelForm):
     class Meta:
@@ -14,6 +15,7 @@ class PostForm(forms.ModelForm):
     class Meta:
         model = Post
         fields = ['title', 'content', 'tag_names']
+        widgets = {'tags':TagWidget(attrs={'data-role':'tagsinput'})}
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
