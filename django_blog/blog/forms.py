@@ -10,12 +10,11 @@ class UserProfileForm(forms.ModelForm):
 
 
 class PostForm(forms.ModelForm):
-    tag_names = forms.CharField(required=False, help_text="Comma-separated tags")
 
     class Meta:
         model = Post
         fields = ['title', 'content', 'tag_names']
-        widgets = {'tags':TagWidget(attrs={'data-role':'tagsinput'})}
+        widgets = {'tags':TagWidget()}
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
