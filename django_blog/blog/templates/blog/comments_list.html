@@ -1,0 +1,31 @@
+<div id="comments" class="comments-section">
+    <h3>Comments ({{ post.comments.count }})</h3>
+
+    {% if post.comments.exists %}
+        <ul class="comment-list">
+            {% for comment in post.comments.all %}
+                <li id="comment-{{ comment.pk }}" class="comment-item">
+                    <div class="comment-meta">
+                        <strong>{{ comment.author.username }}</strong>
+                        <small class="muted">• {{ comment.created_at|date:"M d, Y H:i" }}</small>
+                        {% if comment.updated_at and comment.updated_at != comment.created_at %}
+                            <small class="muted">(edited {{ comment.updated_at|date:"M d, Y H:i" }})</small>
+                        {% endif %}
+                    </div>
+                    <div class="comment-body">
+                        {{ comment.content|linebreaksbr }}
+                    </div>
+
+                    {% if user.is_authenticated and user == comment.author %}
+                        <div class="comment-actions">
+                            <a href="{% url 'comment_edit' comment.pk %}">Edit</a> |
+                            <a href="{% url 'comment_delete' comment.pk %}">Delete</a>
+                        </div>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No comments yet — be the first to comment!</p>
+    {% endif %}
+</div>

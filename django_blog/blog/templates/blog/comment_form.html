@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>{{ view.object and "Edit Comment" or "Add Comment" }}</h2>
+  <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn">Save</button>
+      <a href="{% url 'post_detail' pk=view.object.post.pk if view.object else request.GET.next %}">Cancel</a>
+  </form>
+{% endblock %}
