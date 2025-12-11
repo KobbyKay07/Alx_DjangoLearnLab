@@ -1,48 +1,77 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from django.contrib.auth import authenticate, get_user_model
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework_simplejwt.tokens import RefreshToken
 
 User = get_user_model()
 
+
 class UserSerializer(serializers.ModelSerializer):
-    followers_count = serializers.IntegerField()
-    following_count = serializers.IntegerField()
+    followers_count = serializers.SerializerMethodField()
+    following_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'bio', 'profile_picture', 'followers_count', 'following_count']
+        fields = [
+            "id",
+            "username",
+            "email",
+            "bio",
+            "profile_picture",
+            "followers_count",
+            "following_count",
+        ]
 
-    def followers_count(self, obj):
+    def get_followers_count(self, obj):
         return obj.followers.count()
-    
-    def following_count(self, obj):
+
+    def get_following_count(self, obj):
         return obj.following.count()
-    
+
 
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
-    password2 = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, min_length=8)
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'password2']
+        fields = ["username", "email", "password", "bio"]
 
-    def validate(self, data):
-        if data['password'] != data['password2']:
-            raise serializers.ValidationError("Passwords do not match.")
-        return data
-    
     def create(self, validated_data):
-        validated_data.pop('password2')
-        user = User.objects.create_user(**validated_data)
+        # Ensures password hashing + custom user creation
+        user = User.objects.create_user(
+            username=validated_data["username"],
+            email=validated_data.get("email"),
+            password=validated_data["password"],
+        )
+
+        # Optional: Save bio after creation
+        user.bio = validated_data.get("bio", "")
+        user.save()
+
+        return user
+
 
 class LoginSerializer(serializers.Serializer):
-    email = serializers.EmailField()
+    username = serializers.CharField()
     password = serializers.CharField(write_only=True)
+    access = serializers.CharField(read_only=True)
+    refresh = serializers.CharField(read_only=True)
 
-    def validate(self, data):
-        user = authenticate(username=data['email'], password=data['password'])
-        if not user:
-            raise AuthenticationFailed("Invalid email or password.")
-        data['user'] = user
-        return data
+    def validate(self, attrs):
+        username = attrs.get("username")
+        password = attrs.get("password")
+
+        user = User.objects.filter(username=username).first()
+
+        if user is None:
+            raise serializers.ValidationError("Invalid username or password")
+
+        if not user.check_password(password):
+            raise serializers.ValidationError("Invalid username or password")
+
+        # Create JWT tokens
+        refresh = RefreshToken.for_user(user)
+
+        return {
+            "access": str(refresh.access_token),
+            "refresh": str(refresh),
+        }
