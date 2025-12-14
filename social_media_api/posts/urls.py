@@ -17,7 +17,5 @@ urlpatterns = [
         CommentViewSet.as_view({"get": "retrieve", "put": "update", "patch": "partial_update", "delete": "destroy"}),
         name="comment-detail"
     ),
-    path('follow/<int:user_id>/', FollowUserView.as_view(), name='follow-user'),
-    path('unfollow/<int:user_id>/', FollowUserView.as_view(), name='unfollow-user'),
      path('feed/', FeedView.as_view(), name='user_feed')
 ]
