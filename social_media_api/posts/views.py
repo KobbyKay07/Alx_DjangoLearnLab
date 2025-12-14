@@ -61,10 +61,10 @@ class LikePostView(APIView):
     def post(self, request, pk):
         post = generics.get_object_or_404(Post, pk=pk)
 
-        if Like.objects.filter(user=request.user, post=post).exists():
-            return Response({"detail": "You already liked this post."}, status=status.HTTP_400_BAD_REQUEST)
+        like, created = Like.objects.get_or_create(user=request.user, post=post)
 
-        Like.objects.create(user=request.user, post=post)
+        if not created:
+            return Response({"detail": "You already liked this post."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Create notification for post author
         if post.author != request.user:
@@ -82,7 +82,7 @@ class UnlikePostView(APIView):
 
     def post(self, request, pk):
         post = generics.get_object_or_404(Post, pk=pk)
-        
+
         like = Like.objects.filter(user=request.user, post=post).first()
 
         if not like:
