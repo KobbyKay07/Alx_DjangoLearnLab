@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
 from .serializers import RegisterSerializer, LoginSerializer, UserSerializer
+from rest_framework.authtoken.models import Token
 
 User = get_user_model()
 
@@ -35,11 +36,12 @@ class LoginView(APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
 
-        tokens = generate_tokens(user)
+        token, created = Token.objects.get_or_create(user=user)
+    
         user_data = UserSerializer(user).data
 
         return Response({
-            "tokens": tokens,
+            "tokens": token.key,
             "user": user_data
         })
         
