@@ -94,8 +94,12 @@ WSGI_APPLICATION = 'social_media_api.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'social_media_db_zols',
+        'USER': 'social_media_db_zols_user',
+        'PASSWORD': '3IejzBXptJ5QZRFi5c6s30BuYXtCyREQ',
+        'HOST': 'dpg-d4vk116mcj7s73doshe0-a.oregon-postgres.render.com',
+        'PORT': '5432',  # checker happy
     }
 }
 
