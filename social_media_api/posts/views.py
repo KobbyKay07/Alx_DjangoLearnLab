@@ -1,9 +1,10 @@
-from rest_framework import viewsets, permissions, filters
+from rest_framework import viewsets, permissions, filters, generics
 from rest_framework.authentication import TokenAuthentication
 from django.shortcuts import get_object_or_404
 from .models import Post, Comment
 from .serializers import PostSerializer, CommentSerializer
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.response import Response
 
 # Create your views here.
 class PostViewSet(viewsets.ModelViewSet):
@@ -32,3 +33,22 @@ class CommentViewSet(viewsets.ModelViewSet):
         post_id = self.kwargs.get("post_id")
         post = get_object_or_404(Post, id=post_id)
         serializer.save(author=self.request.user, post=post)
+
+class FeedView(generics.GenericAPIView):
+    """
+    Returns a feed of posts from users that the current user follows.
+    Ordered by creation date (newest first).
+    """
+    serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # Get all users that the current user follows
+        following_users = self.request.user.following.all()  # or .following if your field is named differently
+        # Return posts by those users, newest first
+        return Post.objects.filter(author__in=following_users).order_by('-created_at')
+
+    def get(self, request):
+        posts = self.get_queryset()
+        serializer = self.get_serializer(posts, many=True)
+        return Response(serializer.data)
